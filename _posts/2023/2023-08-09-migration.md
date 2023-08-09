@@ -29,7 +29,7 @@ github의 skeleton[^2]을 포크해왔다.
 jekyll 설정파일로 보인다.
 사이트 전반에 영향을 미치므로 오타나지 않게 잘 수정한다.
 
-{{ "{{% site.edit" }} %}}}} 과 같이 변수마냥 활용할 수 있다. [^3]
+{{ "{{% site.edit" }} %}} 과 같이 변수마냥 활용할 수 있다. [^3]
 
 
 ### My information
@@ -143,8 +143,7 @@ UUID 생성해서 넣어주면 된다.
 
 [^2]: [https://johngrib.github.io/wiki/my-wiki/](johngrib님 블로그 글 "Vimwiki + Jekyll + Github.io로 나만의 위키를 만들자")
 
-[^3]: 이건 진짜 escape계의 레전드다. 엘레강스하게 미치는 방법 중 하나인 것 같다.
-[https://github.com/scottkf/tesoriere.com/blob/master/_posts/2010-08-25-liquid-code-in-a-liquid-template-with-jekyll.markdown](liquid code in a liquid template with jekyll markdown)
+[^3]: 이건 진짜 escape계의 레전드다. 엘레강스하게 미치는 방법 중 하나인 것 같다. <br> [https://github.com/scottkf/tesoriere.com/blob/master/_posts/2010-08-25-liquid-code-in-a-liquid-template-with-jekyll.markdown](liquid code in a liquid template with jekyll markdown)
 
 [^4]: [https://giscus.app/ko](https://giscus.app/ko)
 
