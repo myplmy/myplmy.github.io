@@ -93,3 +93,6 @@ $$
 * [jsbin.com/zimuxulawu](http://jsbin.com/zimuxulawu/edit?html,output): 여기서 연습해 볼 수 있다.
 * [detexify.kirelabs.org/classify.html](http://detexify.kirelabs.org/classify.html): 내가 찾는 기호와 유사한 기호의 목록과 latex 코드를 제안해준다.
 
+<!--stackedit_data:
+eyJoaXN0b3J5IjpbMTgxNzIyOTA2N119
+-->
