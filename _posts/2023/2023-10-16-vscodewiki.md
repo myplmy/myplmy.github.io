@@ -46,7 +46,7 @@ public  : true
 ```
 
 resource는 현재 수동으로 만들고, "앞의 두자리/뒤의 나머지"와 같은 식으로 쓰고있다. \
-만드는 방법은 아래와 같다. [이전 블로그 글에도 써놨다.](https://myplmy.github.io/blog/2023/08/09/migration)
+만드는 방법은 아래와 같다. [이전 블로그 글에도 써놨다.](https://myplmy.github.io/blog/2023/08/09/migration#post의-frontmatter-중-resource)
 
 ```
 powershell -Command "[guid]::NewGuid().ToString().ToUpper()"
