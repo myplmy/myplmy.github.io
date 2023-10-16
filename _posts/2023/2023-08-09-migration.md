@@ -3,7 +3,7 @@ layout  : post
 title   : jekyll wiki 마이그레이션
 summary : jekyll wiki skeleton 가져와서 수정하기
 date    : 2023-08-09 22:28:00 +0900
-updated : 2023-08-10 00:04:00 +0900
+updated : 2023-10-16 21:10:00 +0900
 tag     : jekyll-wiki
 resource: 68/A3B727-C89E-4EEF-8576-8A05AA36BFCB
 toc     : true
@@ -133,6 +133,10 @@ UUID 생성해서 넣어주면 된다.
 파워쉘로 예쁘게 잘라서 출력하는 방법 없나?
 
 
+## 참고자료
+
+ * [johngrib님 블로그, jekyll 위키 관련 문서](https://johngrib.github.io/wiki/blog/)
+
 ## 다음 이시간에 계속
 
 
@@ -141,9 +145,9 @@ UUID 생성해서 넣어주면 된다.
 
 [^1]: [https://github.com/johngrib/johngrib-jekyll-skeleton](https://github.com/johngrib/johngrib-jekyll-skeleton)
 
-[^2]: [https://johngrib.github.io/wiki/my-wiki/](johngrib님 블로그 글 "Vimwiki + Jekyll + Github.io로 나만의 위키를 만들자")
+[^2]: [johngrib님 블로그 글 "Vimwiki + Jekyll + Github.io로 나만의 위키를 만들자"](https://johngrib.github.io/wiki/my-wiki/)
 
-[^3]: 이건 진짜 escape계의 레전드다. 엘레강스하게 미치는 방법 중 하나인 것 같다. <br> [https://github.com/scottkf/tesoriere.com/blob/master/_posts/2010-08-25-liquid-code-in-a-liquid-template-with-jekyll.markdown](liquid code in a liquid template with jekyll markdown)
+[^3]: 이건 진짜 escape계의 레전드다. 엘레강스하게 미치는 방법 중 하나인 것 같다. <br> [liquid code in a liquid template with jekyll markdown](https://github.com/scottkf/tesoriere.com/blob/master/_posts/2010-08-25-liquid-code-in-a-liquid-template-with-jekyll.markdown)
 
 [^4]: [https://giscus.app/ko](https://giscus.app/ko)
 
