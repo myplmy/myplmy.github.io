@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>몬테카를로 기하 탐색 시뮬레이터</title>
+  <style>
+    :root{
+      --bg:#f7f7f8;
+      --panel:#ffffff;
+      --card:#fbfbfc;
+      --text:#202124;
+      --muted:#6b7280;
+      --border:#d7dbe0;
+      --accent:#2563eb;
+      --accent-bg:#e8f0ff;
+      --series2:#3b82f6;
+      --series3:#d97706;
+      --series4:#16a34a;
+      --series5:#7c3aed;
+      --danger:#b91c1c;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#111315;
+        --panel:#171a1d;
+        --card:#1d2125;
+        --text:#f3f4f6;
+        --muted:#a6adb7;
+        --border:#343a40;
+        --accent:#60a5fa;
+        --accent-bg:#1e3a5f;
+        --series2:#60a5fa;
+        --series3:#f59e0b;
+        --series4:#22c55e;
+        --series5:#a78bfa;
+        --danger:#f87171;
+      }
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      line-height:1.45;
+    }
+    .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding:24px;
+    }
+    h1{font-size:1.55rem;margin:0 0 6px}
+    .subtitle{color:var(--muted);margin-bottom:18px}
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);
+      gap:14px;
+      align-items:start;
+    }
+    .stack{display:grid;gap:14px}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+    }
+    .panel h2,.panel h3{margin:0 0 6px;font-size:1rem}
+    .muted{color:var(--muted)}
+    .small{font-size:.9rem}
+    .tiny{font-size:.8rem}
+    .status{
+      display:inline-block;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:.85rem;
+      white-space:nowrap;
+    }
+    .topline{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+    canvas{
+      width:100%;
+      display:block;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:10px;
+    }
+    dl.stats{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:8px 12px;
+      margin:10px 0 0;
+      font-size:.9rem;
+    }
+    dl.stats dt{color:var(--muted)}
+    dl.stats dd{margin:0;text-align:right;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    label{display:block;font-size:.9rem;font-weight:600}
+    select,input[type="range"]{width:100%}
+    select{
+      margin-top:5px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:9px;
+      background:var(--card);
+      color:var(--text);
+      font-size:1rem;
+    }
+    input[type="range"]{margin-top:7px}
+    .checkrow{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin-top:12px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:var(--card);
+      cursor:pointer;
+      font-weight:400;
+    }
+    .checkrow input{margin-top:3px}
+    .buttons{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    button{
+      min-height:42px;
+      border:1px solid var(--border);
+      border-radius:9px;
+      padding:9px 14px;
+      background:var(--card);
+      color:var(--text);
+      font-weight:650;
+      cursor:pointer;
+    }
+    button.primary{
+      background:var(--accent-bg);
+      border-color:var(--accent);
+    }
+    button:focus-visible, select:focus-visible, input:focus-visible{
+      outline:2px solid var(--accent);
+      outline-offset:2px;
+    }
+    ol{margin:.5rem 0 0;padding-left:1.3rem}
+    .note{
+      margin-top:10px;
+      padding:9px 10px;
+      background:var(--card);
+      border-radius:9px;
+      color:var(--muted);
+      font-size:.82rem;
+    }
+    .table-wrap{overflow-x:auto}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:560px;
+      font-size:.88rem;
+    }
+    th,td{
+      padding:8px 10px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+    }
+    th{color:var(--muted);font-weight:600}
+    td{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    footer{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:.8rem;
+    }
+    @media (max-width:840px){
+      .wrap{padding:14px}
+      .grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>몬테카를로 기하 탐색 시뮬레이터</h1>
+  <div class="subtitle">
+    정확한 해를 미리 사용하지 않고, 문제의 기하 조건과 목표 넓이 9/26만으로 P의 y좌표를 수치적으로 탐색합니다.
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="topline">
+        <div>
+          <h2>몬테카를로 탐색 중인 기하 구조</h2>
+          <div class="small muted">원의 제1사분면에서 무작위 P를 생성하고, 넓이 오차가 가장 작은 후보를 유지합니다.</div>
+        </div>
+        <div id="statusBadge" class="status">정지</div>
+      </div>
+      <div style="margin-top:10px">
+        <canvas id="geoCanvas" width="800" height="500" aria-label="몬테카를로 기하 구조"></canvas>
+      </div>
+    </section>
+
+    <div class="stack">
+      <section class="panel">
+        <h3>현재까지의 최적 후보</h3>
+        <dl class="stats">
+          <dt>누적 표본 수</dt><dd id="sampleCount">0</dd>
+          <dt>P의 x좌표</dt><dd id="bestX">—</dd>
+          <dt>P의 y좌표</dt><dd id="bestY">—</dd>
+          <dt>계산된 넓이</dt><dd id="bestArea">—</dd>
+          <dt>목표 넓이</dt><dd>9/26 ≈ 0.3461538462</dd>
+          <dt>넓이 절대오차</dt><dd id="areaError">—</dd>
+        </dl>
+      </section>
+
+      <section class="panel">
+        <label for="batchSize">한 단계당 무작위 P 개수</label>
+        <select id="batchSize">
+          <option value="1">1개 — 한 점씩 관찰</option>
+          <option value="10" selected>10개</option>
+          <option value="100">100개</option>
+          <option value="1000">1,000개</option>
+          <option value="5000">5,000개</option>
+        </select>
+
+        <label for="speed" style="margin-top:12px">자동 실행 속도</label>
+        <input id="speed" type="range" min="1" max="20" value="7" />
+
+        <label class="checkrow">
+          <input id="showSamples" type="checkbox" checked />
+          <span>
+            <strong>무작위 P 표본 표시</strong><br>
+            <span class="tiny muted">체크 해제하면 점만 숨기고 계산은 계속합니다.</span>
+          </span>
+        </label>
+
+        <div class="buttons">
+          <button id="toggleBtn" class="primary" type="button">▶ 자동 실행</button>
+          <button id="stepBtn" type="button">한 단계</button>
+          <button id="resetBtn" type="button">초기화</button>
+        </div>
+      </section>
+
+      <section class="panel small">
+        <h3>각 표본에서 수행되는 계산</h3>
+        <ol class="muted">
+          <li>원의 제1사분면에서 P를 무작위로 선택</li>
+          <li>AP:PQ = 2:1 조건으로 Q 계산</li>
+          <li>직선 BP와 OQ의 교점을 일반적인 직선 교점식으로 계산</li>
+          <li>O, B, R의 좌표로 삼각형 넓이 계산</li>
+          <li>9/26과의 오차가 더 작으면 최적 후보 갱신</li>
+        </ol>
+        <div class="note">정답 y값이나 정답에서 유도된 식은 시뮬레이션에 입력하지 않습니다.</div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel" style="margin-top:14px">
+    <h3>최적 y좌표가 안정되는 과정</h3>
+    <div class="small muted" style="margin-bottom:8px">
+      새 표본이 더 좋은 넓이 일치를 만들 때마다 현재 최적 y값이 변합니다. 정답 기준선은 표시하지 않습니다.
+    </div>
+    <canvas id="convCanvas" width="1000" height="360" aria-label="최적 y좌표 수렴 그래프"></canvas>
+  </section>
+
+  <section class="panel" style="margin-top:14px">
+    <h3>최근 개선 기록</h3>
+    <div class="small muted">오차가 더 작은 후보가 등장한 순간만 표시합니다.</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>표본 #</th><th>y(P)</th><th>넓이</th><th>오차</th></tr>
+        </thead>
+        <tbody id="recordBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    이 파일은 외부 라이브러리나 네트워크 연결 없이 브라우저에서 단독 실행됩니다.
+  </footer>
+</div>
+
+<script>
+(() => {
+  const targetArea = 9 / 26;
+  const A = {x:-1, y:0}, B = {x:1, y:0}, O = {x:0, y:0};
+
+  const geo = document.getElementById('geoCanvas');
+  const conv = document.getElementById('convCanvas');
+  const gctx = geo.getContext('2d');
+  const cctx = conv.getContext('2d');
+
+  const countEl = document.getElementById('sampleCount');
+  const bestXEl = document.getElementById('bestX');
+  const bestYEl = document.getElementById('bestY');
+  const bestAreaEl = document.getElementById('bestArea');
+  const areaErrorEl = document.getElementById('areaError');
+  const batchSel = document.getElementById('batchSize');
+  const speedInput = document.getElementById('speed');
+  const showSamples = document.getElementById('showSamples');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const stepBtn = document.getElementById('stepBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const statusBadge = document.getElementById('statusBadge');
+  const recordBody = document.getElementById('recordBody');
+
+  let total = 0;
+  let best = null;
+  let history = [];
+  let improvements = [];
+  let displaySamples = [];
+  let running = false;
+  let timer = null;
+
+  let seed = 0x2f6a91c3;
+  function rand(){
+    seed |= 0;
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = seed;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  function css(name, fallback){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  function fitCanvas(canvas, ctx, ratio){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.max(300, Math.floor(rect.width));
+    const h = Math.max(220, Math.floor(w * ratio));
+    const rw = Math.floor(w * dpr), rh = Math.floor(h * dpr);
+    if(canvas.width !== rw || canvas.height !== rh){
+      canvas.width = rw;
+      canvas.height = rh;
+      canvas.style.height = h + 'px';
+    }
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {w,h};
+  }
+
+  function intersectLines(p1,p2,p3,p4){
+    const x1=p1.x,y1=p1.y,x2=p2.x,y2=p2.y;
+    const x3=p3.x,y3=p3.y,x4=p4.x,y4=p4.y;
+    const den=(x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+    if(Math.abs(den)<1e-12) return null;
+    const a=x1*y2-y1*x2, b=x3*y4-y3*x4;
+    return {
+      x:(a*(x3-x4)-(x1-x2)*b)/den,
+      y:(a*(y3-y4)-(y1-y2)*b)/den
+    };
+  }
+
+  function triangleArea(p1,p2,p3){
+    return Math.abs(
+      p1.x*(p2.y-p3.y)+
+      p2.x*(p3.y-p1.y)+
+      p3.x*(p1.y-p2.y)
+    )/2;
+  }
+
+  function sampleOne(){
+    const theta = rand() * Math.PI/2;
+    const P = {x:Math.cos(theta), y:Math.sin(theta)};
+    const Q = {
+      x:A.x + 1.5*(P.x-A.x),
+      y:A.y + 1.5*(P.y-A.y)
+    };
+    const R = intersectLines(B,P,O,Q);
+    if(!R) return null;
+    const area = triangleArea(O,B,R);
+    return {P,Q,R,area,err:Math.abs(area-targetArea)};
+  }
+
+  function retainDisplaySample(s){
+    if(displaySamples.length < 1500){
+      displaySamples.push(s.P);
+      return;
+    }
+    const j = Math.floor(rand()*total);
+    if(j < 1500) displaySamples[j] = s.P;
+  }
+
+  function runBatch(){
+    const n = Math.max(1,Math.min(5000,Number(batchSel.value)||1));
+    let any = false;
+
+    for(let i=0;i<n;i++){
+      const s = sampleOne();
+      if(!s) continue;
+      total++;
+      retainDisplaySample(s);
+
+      if(!best || s.err < best.err){
+        best = s;
+        history.push({n:total,y:s.P.y,err:s.err});
+        improvements.push({n:total,y:s.P.y,area:s.area,err:s.err});
+        if(improvements.length > 100) improvements.shift();
+        any = true;
+      }
+    }
+
+    if(!any && best && (history.length===0 || total > history[history.length-1].n*1.25)){
+      history.push({n:total,y:best.P.y,err:best.err});
+    }
+
+    updateStats();
+    updateTable();
+    drawAll();
+  }
+
+  function updateStats(){
+    countEl.textContent = total.toLocaleString('ko-KR');
+    if(!best){
+      bestXEl.textContent = bestYEl.textContent =
+      bestAreaEl.textContent = areaErrorEl.textContent = '—';
+      return;
+    }
+    bestXEl.textContent = best.P.x.toFixed(10);
+    bestYEl.textContent = best.P.y.toFixed(10);
+    bestAreaEl.textContent = best.area.toFixed(10);
+    areaErrorEl.textContent = best.err.toExponential(3);
+  }
+
+  function updateTable(){
+    recordBody.innerHTML = '';
+    for(const r of improvements.slice(-8).reverse()){
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        `<td>${r.n.toLocaleString('ko-KR')}</td>`+
+        `<td>${r.y.toFixed(8)}</td>`+
+        `<td>${r.area.toFixed(8)}</td>`+
+        `<td>${r.err.toExponential(2)}</td>`;
+      recordBody.appendChild(tr);
+    }
+  }
+
+  function drawGeo(){
+    const {w,h} = fitCanvas(geo,gctx,0.63);
+    const text=css('--text','#222'), muted=css('--muted','#666'),
+          border=css('--border','#ccc'), s2=css('--series2','#3b82f6'),
+          s3=css('--series3','#d97706'), s4=css('--series4','#16a34a'),
+          s5=css('--series5','#7c3aed'), accent=css('--accent','#2563eb');
+
+    gctx.clearRect(0,0,w,h);
+
+    const xmin=-1.25,xmax=2.15,ymin=-0.2,ymax=1.7,pad=34;
+    const scale=Math.min((w-2*pad)/(xmax-xmin),(h-2*pad)/(ymax-ymin));
+    const ox=pad-xmin*scale, oy=h-pad+ymin*scale;
+    const X=x=>ox+x*scale, Y=y=>oy-y*scale;
+
+    gctx.strokeStyle=border; gctx.lineWidth=1;
+    gctx.beginPath();
+    gctx.moveTo(X(xmin),Y(0)); gctx.lineTo(X(xmax),Y(0));
+    gctx.moveTo(X(0),Y(ymin)); gctx.lineTo(X(0),Y(ymax));
+    gctx.stroke();
+
+    gctx.strokeStyle=s2; gctx.lineWidth=2;
+    gctx.beginPath();
+    for(let i=0;i<=240;i++){
+      const a=i/240*Math.PI*2;
+      const px=X(Math.cos(a)), py=Y(Math.sin(a));
+      if(i===0) gctx.moveTo(px,py); else gctx.lineTo(px,py);
+    }
+    gctx.stroke();
+
+    if(showSamples.checked){
+      gctx.fillStyle=s3;
+      gctx.globalAlpha=.20;
+      for(const p of displaySamples){
+        gctx.beginPath();
+        gctx.arc(X(p.x),Y(p.y),2.7,0,Math.PI*2);
+        gctx.fill();
+      }
+      gctx.globalAlpha=1;
+    }
+
+    if(best){
+      const {P,Q,R}=best;
+
+      gctx.strokeStyle=s3;
+      gctx.setLineDash([6,5]);
+      gctx.lineWidth=1.5;
+      gctx.beginPath();
+      gctx.moveTo(X(A.x),Y(A.y));
+      gctx.lineTo(X(Q.x),Y(Q.y));
+      gctx.stroke();
+      gctx.setLineDash([]);
+
+      gctx.strokeStyle=s4;
+      gctx.lineWidth=2;
+      gctx.beginPath();
+      gctx.moveTo(X(B.x),Y(B.y));
+      gctx.lineTo(X(P.x),Y(P.y));
+      gctx.stroke();
+
+      gctx.strokeStyle=s5;
+      gctx.beginPath();
+      gctx.moveTo(X(O.x),Y(O.y));
+      gctx.lineTo(X(Q.x),Y(Q.y));
+      gctx.stroke();
+
+      gctx.fillStyle=s5;
+      gctx.globalAlpha=.14;
+      gctx.beginPath();
+      gctx.moveTo(X(O.x),Y(O.y));
+      gctx.lineTo(X(B.x),Y(B.y));
+      gctx.lineTo(X(R.x),Y(R.y));
+      gctx.closePath();
+      gctx.fill();
+      gctx.globalAlpha=1;
+
+      point(P,'P',accent);
+      point(Q,'Q',s5);
+      point(R,'R',s3);
+    }
+
+    point(A,'A',text);
+    point(B,'B',text);
+    point(O,'O',text);
+
+    gctx.fillStyle=muted;
+    gctx.font='12px system-ui,sans-serif';
+    const msg = showSamples.checked
+      ? `표시 중인 무작위 P: ${displaySamples.length.toLocaleString('ko-KR')}개`
+      : '무작위 P 표본 숨김';
+    gctx.fillText(msg,12,18);
+
+    function point(p,label,color){
+      gctx.fillStyle=color;
+      gctx.beginPath();
+      gctx.arc(X(p.x),Y(p.y),4.5,0,Math.PI*2);
+      gctx.fill();
+      gctx.fillStyle=text;
+      gctx.font='13px system-ui,sans-serif';
+      gctx.fillText(label,X(p.x)+7,Y(p.y)-7);
+    }
+  }
+
+  function drawConv(){
+    const {w,h}=fitCanvas(conv,cctx,0.36);
+    const text=css('--text','#222'), muted=css('--muted','#666'),
+          border=css('--border','#ccc'), s2=css('--series2','#3b82f6');
+
+    cctx.clearRect(0,0,w,h);
+
+    const L=58,R=16,T=18,Bt=38;
+    const x0=L,x1=w-R,y0=T,y1=h-Bt;
+
+    let ymin=.85,ymax=1;
+    if(history.length){
+      const ys=history.map(d=>d.y);
+      ymin=Math.max(0,Math.min(...ys)-.01);
+      ymax=Math.min(1,Math.max(...ys)+.01);
+      if(ymax-ymin<.02){
+        const m=(ymin+ymax)/2;
+        ymin=Math.max(0,m-.01);
+        ymax=Math.min(1,m+.01);
+      }
+    }
+
+    const maxN=Math.max(10,total);
+    const logMax=Math.log10(maxN);
+    const px=n=>x0+(Math.log10(Math.max(1,n))/Math.max(1,logMax))*(x1-x0);
+    const py=y=>y1-(y-ymin)/(ymax-ymin)*(y1-y0);
+
+    cctx.strokeStyle=border;
+    cctx.lineWidth=1;
+    cctx.beginPath();
+    cctx.moveTo(x0,y0); cctx.lineTo(x0,y1); cctx.lineTo(x1,y1);
+    cctx.stroke();
+
+    cctx.font='11px system-ui,sans-serif';
+    for(let i=0;i<=4;i++){
+      const y=ymin+(ymax-ymin)*i/4, yy=py(y);
+      cctx.strokeStyle=border;
+      cctx.globalAlpha=.45;
+      cctx.beginPath();
+      cctx.moveTo(x0,yy); cctx.lineTo(x1,yy);
+      cctx.stroke();
+      cctx.globalAlpha=1;
+      cctx.fillStyle=muted;
+      cctx.fillText(y.toFixed(4),4,yy+4);
+    }
+
+    if(history.length){
+      cctx.strokeStyle=s2;
+      cctx.lineWidth=2;
+      cctx.beginPath();
+      history.forEach((d,i)=>{
+        if(i===0) cctx.moveTo(px(d.n),py(d.y));
+        else cctx.lineTo(px(d.n),py(d.y));
+      });
+      cctx.stroke();
+
+      const d=history[history.length-1];
+      cctx.fillStyle=s2;
+      cctx.beginPath();
+      cctx.arc(px(d.n),py(d.y),4,0,Math.PI*2);
+      cctx.fill();
+    }
+
+    cctx.fillStyle=text;
+    cctx.font='12px system-ui,sans-serif';
+    cctx.fillText('1',x0-3,h-15);
+    cctx.textAlign='right';
+    cctx.fillText(maxN.toLocaleString('ko-KR'),x1,h-15);
+    cctx.textAlign='left';
+  }
+
+  function drawAll(){drawGeo();drawConv();}
+
+  function schedule(){
+    if(!running) return;
+    runBatch();
+    const delay=Math.max(35,650-Number(speedInput.value)*30);
+    timer=setTimeout(schedule,delay);
+  }
+
+  function setRunning(v){
+    running=v;
+    if(timer){clearTimeout(timer);timer=null;}
+    toggleBtn.textContent=running?'⏸ 일시정지':'▶ 자동 실행';
+    statusBadge.textContent=running?'실행 중':'정지';
+    if(running) schedule();
+  }
+
+  toggleBtn.addEventListener('click',()=>setRunning(!running));
+  stepBtn.addEventListener('click',()=>{
+    if(running) setRunning(false);
+    runBatch();
+  });
+  resetBtn.addEventListener('click',()=>{
+    setRunning(false);
+    total=0;
+    best=null;
+    history=[];
+    improvements=[];
+    displaySamples=[];
+    seed=0x2f6a91c3;
+    updateStats();
+    updateTable();
+    drawAll();
+  });
+  showSamples.addEventListener('change',drawGeo);
+  window.addEventListener('resize',drawAll,{passive:true});
+
+  updateStats();
+  updateTable();
+  drawAll();
+  runBatch();
+})();
+</script>
+</body>
+</html>
