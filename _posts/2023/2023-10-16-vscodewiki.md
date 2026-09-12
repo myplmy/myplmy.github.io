@@ -79,6 +79,12 @@ powershell -Command "[guid]::NewGuid().ToString().ToUpper()"
  * ==, != : 자료형 변환하여 일치시키고 비교한다
  * ===, !== : 자료형 변환하지 않고 비교한다. !==는 같은 자료형이 아닌 경우에도 true 를 반환한다.
 
+### 화살표 함수
+typescript는 함수 선언시 다른 방법으로 선언할 수 있다. 이는 자바스크립트의 특징이기도 한데, \
+내부적으로 작동하는 방식에 차이가 있으므로 주의해야 한단다.
+ * https://stackoverflow.com/questions/52750975/export-a-typescript-function-or-a-typescript-const-reference-to-a-function
+ * https://stackoverflow.com/questions/34361379/are-arrow-functions-and-functions-equivalent-interchangeable
+
 ### 에러처리 방법
  * https://immigration9.github.io/typescript/2022/01/09/error-typescript.html \
    타입스크립트는 무려 try{}catch(error){}에서 error의  type이 unknown이다.
